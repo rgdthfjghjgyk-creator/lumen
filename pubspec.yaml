@@ -60,7 +60,7 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^5.0.0
+  flutter_lints: ^4.0.0  # Изменено с ^5.0.0 на ^4.0.0
 
 flutter:
   uses-material-design: true
@@ -70,10 +70,3 @@ flutter:
     - assets/animations/
     - assets/icons/
     - assets/images/
-  
-  fonts:
-    - family: SFProDisplay
-      fonts:
-        - asset: assets/fonts/SFProDisplay-Regular.ttf
-        - asset: assets/fonts/SFProDisplay-Bold.ttf
-          weight: 700
