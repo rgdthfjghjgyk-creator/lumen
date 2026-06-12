@@ -18,10 +18,31 @@ jobs:
           flutter-version: '3.19.6'
           channel: 'stable'
       
-      - name: Clean and get dependencies
+      - name: Clean project
         run: |
           flutter clean
-          flutter pub get
+          rm -rf ios/Pods
+          rm -rf ios/Podfile.lock
+          rm -rf ios/.symlinks
+          rm -rf ios/Flutter/Flutter.framework
+          rm -rf ios/Flutter/Flutter.podspec
+      
+      - name: Install dependencies
+        run: flutter pub get
+      
+      - name: Update iOS project
+        run: |
+          # Пересоздаем iOS папку если нужно
+          if [ ! -d "ios" ]; then
+            flutter create --platforms=ios .
+          fi
+          
+          # Обновляем поды
+          cd ios
+          pod deintegrate || true
+          pod cache clean --all || true
+          pod install --repo-update
+          cd ..
       
       - name: Build iOS
         run: |
