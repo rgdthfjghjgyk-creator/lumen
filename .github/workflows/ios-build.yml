@@ -15,14 +15,26 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
-      - uses: subosito/flutter-action@v2
-        with:
-          flutter-version: 'stable'  # Верни как было - stable
-          channel: 'stable'
-          # УБИРАЕМ architecture - пусть автоопределяет
+      # Ручная установка Flutter вместо subosito/flutter-action
+      - name: Setup Flutter
+        run: |
+          # Скачиваем Flutter для macOS ARM64 напрямую
+          FLUTTER_VERSION="3.19.6"
+          FLUTTER_URL="https://storage.googleapis.com/flutter_infra_release/releases/stable/macos/flutter_macos_arm64_${FLUTTER_VERSION}-stable.zip"
+          
+          curl -L -o flutter.zip $FLUTTER_URL
+          unzip -q flutter.zip
+          echo "$(pwd)/flutter/bin" >> $GITHUB_PATH
+          rm flutter.zip
+          
+          # Предварительно соглашаемся с лицензиями
+          flutter --version
+          flutter doctor
       
       - name: Install dependencies
-        run: flutter pub get
+        run: |
+          flutter pub get
+          flutter clean
       
       - name: Build .app (without signing)
         run: |
