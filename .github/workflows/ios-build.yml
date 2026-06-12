@@ -1,4 +1,4 @@
-name: Build iOS Simulator
+name: Build iOS IPA
 
 on:
   push:
@@ -17,31 +17,27 @@ jobs:
         with:
           flutter-version: '3.19.6'
       
-      - name: Build for Simulator
+      - name: Fix Swift Package issue
         run: |
-          # Полная очистка
           flutter clean
           rm -rf ios
-          rm -rf build
-          
-          # Установка зависимостей
           flutter pub get
-          
-          # Создание iOS проекта
           flutter create --platforms=ios --org=com.lumen .
-          
-          # Сборка для симулятора
-          flutter build ios --debug --simulator
-          
-          # Создание архива
-          cd build/ios/iphonesimulator
-          mkdir -p Payload
+          rm -rf ios/Flutter/ephemeral/Packages
+          mkdir -p ios/Flutter/ephemeral/Packages
+          touch ios/Flutter/ephemeral/Packages/FlutterGeneratedPluginSwiftPackage.swift
+      
+      - name: Build IPA
+        run: |
+          flutter build ios --release --no-codesign
+          cd build/ios/iphoneos
+          mkdir Payload
           cp -r Runner.app Payload/
-          zip -r ../../../lumen-simulator.zip Payload/
+          zip -r ../../../lumen.ipa Payload/
           cd ../../..
-          
-      - name: Upload artifact
+      
+      - name: Upload
         uses: actions/upload-artifact@v4
         with:
-          name: lumen-simulator
-          path: lumen-simulator.zip
+          name: lumen.ipa
+          path: lumen.ipa
