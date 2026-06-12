@@ -1,8 +1,5 @@
 name: Build iOS App
 
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-
 on:
   push:
     branches: [ main ]
@@ -15,32 +12,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
-      # Ручная установка Flutter
       - name: Setup Flutter
-        run: |
-          # Скачиваем Flutter
-          curl -L -o flutter.zip https://storage.googleapis.com/flutter_infra_release/releases/stable/macos/flutter_macos_arm64_3.19.6-stable.zip
-          unzip -q flutter.zip
-          
-          # Добавляем в PATH правильно
-          echo "$(pwd)/flutter/bin" >> $GITHUB_PATH
-          
-          # Также добавляем в PATH для текущей сессии
-          export PATH="$PATH:$(pwd)/flutter/bin"
-          
-          # Проверяем
-          ls -la flutter/bin/
-          ./flutter/bin/flutter --version
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.19.6'
+          channel: 'stable'
       
-      - name: Install dependencies
+      - name: Clean and get dependencies
         run: |
-          # Используем полный путь к flutter
-          ./flutter/bin/flutter pub get
-          ./flutter/bin/flutter clean
+          flutter clean
+          flutter pub get
       
-      - name: Build .app
+      - name: Build iOS
         run: |
-          ./flutter/bin/flutter build ios --release --no-codesign
+          flutter build ios --release --no-codesign
           mkdir -p Payload
           cp -r build/ios/iphoneos/Runner.app Payload/
           zip -r lumen.ipa Payload/
