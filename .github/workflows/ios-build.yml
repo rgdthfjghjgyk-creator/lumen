@@ -1,4 +1,4 @@
-name: Build iOS App
+name: Build iOS Simulator
 
 on:
   push:
@@ -16,72 +16,32 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.19.6'
-          channel: 'stable'
       
-      - name: Clean and rebuild iOS project
+      - name: Build for Simulator
         run: |
           # Полная очистка
           flutter clean
           rm -rf ios
           rm -rf build
           
-          # Получаем зависимости
+          # Установка зависимостей
           flutter pub get
           
-          # Создаем новый iOS проект
+          # Создание iOS проекта
           flutter create --platforms=ios --org=com.lumen .
           
-          # Удаляем проблемные файлы
-          rm -rf ios/Flutter/ephemeral/Packages
-          mkdir -p ios/Flutter/ephemeral/Packages
+          # Сборка для симулятора
+          flutter build ios --debug --simulator
           
-          # Создаем фиктивный Swift package
-          echo "// dummy file" > ios/Flutter/ephemeral/Packages/FlutterGeneratedPluginSwiftPackage.swift
-      
-      - name: Fix Podfile
-        run: |
-          cat > ios/Podfile << 'EOF'
-          platform :ios, '13.0'
-          
-          target 'Runner' do
-            use_frameworks!
-            use_modular_headers!
-            
-            flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
-          end
-          
-          post_install do |installer|
-            installer.pods_project.targets.each do |target|
-              flutter_additional_ios_build_settings(target)
-              target.build_configurations.each do |config|
-                config.build_settings['CODE_SIGNING_ALLOWED'] = 'NO'
-                config.build_settings['CODE_SIGNING_REQUIRED'] = 'NO'
-                config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '13.0'
-              end
-            end
-          end
-          EOF
-      
-      - name: Install pods
-        run: |
-          cd ios
-          pod deintegrate || true
-          pod install --repo-update
-          cd ..
-      
-      - name: Build iOS
-        run: |
-          flutter build ios --release --no-codesign
-          
-          # Создаем IPA
-          cd build/ios/iphoneos
+          # Создание архива
+          cd build/ios/iphonesimulator
           mkdir -p Payload
           cp -r Runner.app Payload/
-          zip -r ../../../lumen.ipa Payload/
+          zip -r ../../../lumen-simulator.zip Payload/
           cd ../../..
-      
-      - name: Upload IPA
+          
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: lumen.ipa
-          path: lumen.ipa
+          name: lumen-simulator
+          path: lumen-simulator.zip
