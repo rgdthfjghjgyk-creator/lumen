@@ -15,30 +15,32 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
-      # Ручная установка Flutter вместо subosito/flutter-action
+      # Ручная установка Flutter
       - name: Setup Flutter
         run: |
-          # Скачиваем Flutter для macOS ARM64 напрямую
-          FLUTTER_VERSION="3.19.6"
-          FLUTTER_URL="https://storage.googleapis.com/flutter_infra_release/releases/stable/macos/flutter_macos_arm64_${FLUTTER_VERSION}-stable.zip"
-          
-          curl -L -o flutter.zip $FLUTTER_URL
+          # Скачиваем Flutter
+          curl -L -o flutter.zip https://storage.googleapis.com/flutter_infra_release/releases/stable/macos/flutter_macos_arm64_3.19.6-stable.zip
           unzip -q flutter.zip
-          echo "$(pwd)/flutter/bin" >> $GITHUB_PATH
-          rm flutter.zip
           
-          # Предварительно соглашаемся с лицензиями
-          flutter --version
-          flutter doctor
+          # Добавляем в PATH правильно
+          echo "$(pwd)/flutter/bin" >> $GITHUB_PATH
+          
+          # Также добавляем в PATH для текущей сессии
+          export PATH="$PATH:$(pwd)/flutter/bin"
+          
+          # Проверяем
+          ls -la flutter/bin/
+          ./flutter/bin/flutter --version
       
       - name: Install dependencies
         run: |
-          flutter pub get
-          flutter clean
+          # Используем полный путь к flutter
+          ./flutter/bin/flutter pub get
+          ./flutter/bin/flutter clean
       
-      - name: Build .app (without signing)
+      - name: Build .app
         run: |
-          flutter build ios --release --no-codesign
+          ./flutter/bin/flutter build ios --release --no-codesign
           mkdir -p Payload
           cp -r build/ios/iphoneos/Runner.app Payload/
           zip -r lumen.ipa Payload/
