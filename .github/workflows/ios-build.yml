@@ -1,4 +1,4 @@
-name: Build iOS IPA (Unsigned)
+name: Build iOS IPA
 
 on:
   push:
@@ -17,38 +17,19 @@ jobs:
         with:
           flutter-version: '3.19.6'
       
-      - name: Build unsigned IPA
+      - name: Build IPA
         run: |
-          # Очистка
           flutter clean
-          rm -rf ios
-          
-          # Подготовка
           flutter pub get
-          flutter create --platforms=ios --org=com.lumen .
-          
-          # Установка подов
-          cd ios
-          pod install --repo-update
-          cd ..
-          
-          # Сборка для устройства (без подписи)
           flutter build ios --release --no-codesign
-          
-          # Создание IPA
           cd build/ios/iphoneos
-          mkdir -p Payload
+          mkdir Payload
           cp -r Runner.app Payload/
-          zip -r ../../../lumen-unsigned.ipa Payload/
+          zip -r ../../../lumen.ipa Payload/
           cd ../../..
-          
-          # Также сохраняем .app для AltStore
-          zip -r lumen-app.zip build/ios/iphoneos/Runner.app
       
-      - name: Upload artifacts
+      - name: Upload IPA
         uses: actions/upload-artifact@v4
         with:
-          name: lumen-unsigned
-          path: |
-            lumen-unsigned.ipa
-            lumen-app.zip
+          name: lumen.ipa
+          path: lumen.ipa
