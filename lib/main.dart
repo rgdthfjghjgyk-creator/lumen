@@ -2,31 +2,25 @@ import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:lumen/screens/home_screen.dart';
 import 'package:lumen/services/notification_service.dart';
-import 'package:lumen/theme/app_theme.dart';
+import 'package:lumen/services/alarm_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  // Запрашиваем все необходимые разрешения для iOS
+  // Запрос разрешений
   await _requestPermissions();
   
-  // Инициализируем сервис уведомлений
+  // Инициализация сервисов
   await NotificationService.initialize();
+  await AlarmService().initialize();
   
   runApp(const LumenApp());
 }
 
 Future<void> _requestPermissions() async {
-  // Запрашиваем разрешение на уведомления
   await Permission.notification.request();
-  
-  // Для критических уведомлений (важно для будильника на iOS)
-  if (await Permission.notification.isGranted) {
-    // Разрешение получено
-    debugPrint('✅ Уведомления разрешены');
-  } else {
-    debugPrint('⚠️ Уведомления запрещены');
-  }
+  await Permission.storage.request();
+  await Permission.ignoreBatteryOptimizations.request();
 }
 
 class LumenApp extends StatelessWidget {
@@ -35,9 +29,16 @@ class LumenApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Lumen - Будильник',
+      title: 'Lumen',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.darkTheme,
+      theme: ThemeData.dark().copyWith(
+        primaryColor: Colors.orange,
+        scaffoldBackgroundColor: Colors.black,
+        colorScheme: const ColorScheme.dark(
+          primary: Colors.orange,
+          secondary: Colors.orange,
+        ),
+      ),
       home: const HomeScreen(),
     );
   }
