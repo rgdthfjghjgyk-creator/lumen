@@ -9,13 +9,23 @@ enum AlarmDifficulty {
 }
 
 enum AlarmMathOperation {
-  addition('+', (a, b) => a + b),
-  subtraction('-', (a, b) => a - b),
-  multiplication('×', (a, b) => a * b);
+  addition('+'),
+  subtraction('-'),
+  multiplication('×');
   
   final String symbol;
-  final int Function(int a, int b) calculate;
-  const AlarmMathOperation(this.symbol, this.calculate);
+  const AlarmMathOperation(this.symbol);
+  
+  int calculate(int a, int b) {
+    switch (this) {
+      case addition:
+        return a + b;
+      case subtraction:
+        return a - b;
+      case multiplication:
+        return a * b;
+    }
+  }
 }
 
 class Alarm {

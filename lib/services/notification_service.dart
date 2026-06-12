@@ -1,7 +1,8 @@
+import 'dart:async';
+import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:lumen/models/alarm.dart';
-import 'dart:math';
 
 class NotificationService {
   static final FlutterLocalNotificationsPlugin _notifications = 
@@ -10,7 +11,6 @@ class NotificationService {
   static Timer? _alarmTimer;
   
   static Future<void> initialize() async {
-    // Настройка для iOS
     const iOSSettings = DarwinInitializationSettings(
       requestAlertPermission: true,
       requestBadgePermission: true,
@@ -20,10 +20,7 @@ class NotificationService {
       defaultPresentBadge: true,
     );
     
-    const settings = InitializationSettings(
-      iOS: iOSSettings,
-    );
-    
+    const settings = InitializationSettings(iOS: iOSSettings);
     await _notifications.initialize(settings);
   }
   
@@ -39,9 +36,7 @@ class NotificationService {
       scheduledTime = scheduledTime.add(const Duration(days: 1));
     }
     
-    // Для повторяющихся будильников проверяем день недели
     if (alarm.repeatDays.isNotEmpty && !alarm.repeatDays.contains(now.weekday - 1)) {
-      // Ищем следующий подходящий день
       while (!alarm.repeatDays.contains(scheduledTime.weekday - 1)) {
         scheduledTime = scheduledTime.add(const Duration(days: 1));
       }
@@ -49,7 +44,6 @@ class NotificationService {
     
     final difference = scheduledTime.difference(now);
     
-    // Планируем локальное уведомление
     if (difference.inSeconds > 0) {
       Future.delayed(difference, () async {
         await showAlarm(alarm);
@@ -75,7 +69,6 @@ class NotificationService {
       details,
     );
     
-    // Запускаем звук
     await _playAlarmSound(alarm.sound);
   }
   

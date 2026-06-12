@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:lumen/models/alarm.dart';
 
 class AddAlarmScreen extends StatefulWidget {
@@ -49,7 +50,6 @@ class _AddAlarmScreenState extends State<AddAlarmScreen> {
       ),
       body: Column(
         children: [
-          // Time picker
           SizedBox(
             height: 300,
             child: CupertinoTimerPicker(
@@ -86,7 +86,7 @@ class _AddAlarmScreenState extends State<AddAlarmScreen> {
                   onTap: () => _showRepeatDialog(),
                 ),
                 SwitchListTile(
-                  secondary: const Icon(Icons.alarm_snooze, color: Color(0xFFFF9F4A)),
+                  secondary: const Icon(Icons.snooze, color: Color(0xFFFF9F4A)),
                   title: const Text('Отложить'),
                   value: _snoozeEnabled,
                   onChanged: (value) => setState(() => _snoozeEnabled = value),
@@ -263,6 +263,3 @@ class _AddAlarmScreenState extends State<AddAlarmScreen> {
     Navigator.pop(context, alarm);
   }
 }
-
-// Добавьте CupertinoTimerPicker импорт
-import 'package:flutter/cupertino.dart';
