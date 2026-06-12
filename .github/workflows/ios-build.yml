@@ -1,4 +1,4 @@
-name: Build iOS
+name: Build iOS Simulator
 
 on:
   push:
@@ -8,22 +8,40 @@ on:
 jobs:
   build:
     runs-on: macos-latest
+    
     steps:
       - uses: actions/checkout@v4
       
-      - uses: subosito/flutter-action@v2
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.19.6'
+          channel: 'stable'
       
-      - name: Build
+      - name: Build for Simulator
         run: |
+          flutter clean
+          rm -rf ios
           flutter pub get
-          flutter build ios --release --no-codesign --simulator
-          mkdir Payload && cp -r build/ios/iphonesimulator/Runner.app Payload/
-          zip -r lumen.ipa Payload/
+          flutter create --platforms=ios --org=com.lumen .
+          
+          # Для симулятора используем debug или profile режим
+          flutter build ios --debug --simulator
+          
+          # Создаем папку для архива
+          mkdir -p Payload
+          cp -r build/ios/iphonesimulator/Runner.app Payload/
+          
+          # Создаем ZIP архив (для установки в симулятор)
+          zip -r lumen-simulator.zip Payload/
+          
+          # Также сохраняем .app для прямой установки
+          zip -r lumen-app.zip build/ios/iphonesimulator/Runner.app
       
-      - name: Upload
+      - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: lumen.ipa
-          path: lumen.ipa
+          name: lumen-simulator
+          path: |
+            lumen-simulator.zip
+            lumen-app.zip
