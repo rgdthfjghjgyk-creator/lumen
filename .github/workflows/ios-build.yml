@@ -17,18 +17,31 @@ jobs:
         with:
           flutter-version: '3.19.6'
       
-      - name: Build IPA
+      - name: Build
         run: |
+          # Полная очистка
           flutter clean
+          rm -rf ios
+          
+          # Подготовка
           flutter pub get
+          flutter create --platforms=ios --org=com.lumen .
+          
+          # ФИКС: создаем недостающую папку ДО билда
+          mkdir -p ios/Flutter/ephemeral/Packages
+          echo "// Fixed" > ios/Flutter/ephemeral/Packages/FlutterGeneratedPluginSwiftPackage.swift
+          
+          # Билд
           flutter build ios --release --no-codesign
+          
+          # Создание IPA
           cd build/ios/iphoneos
           mkdir Payload
           cp -r Runner.app Payload/
           zip -r ../../../lumen.ipa Payload/
           cd ../../..
       
-      - name: Upload IPA
+      - name: Upload
         uses: actions/upload-artifact@v4
         with:
           name: lumen.ipa
