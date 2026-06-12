@@ -21,14 +21,48 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
       
-      - name: Fix missing Swift package folder
+      - name: Disable Swift Package Manager and build
         run: |
+          # Удаляем проблемные файлы
+          rm -rf ios/Flutter/ephemeral/Packages
+          rm -rf ios/Pods
+          rm -rf ios/Podfile.lock
+          
+          # Создаем Podfile без SwiftPM
+          cat > ios/Podfile << 'EOF'
+          platform :ios, '12.0'
+          
+          target 'Runner' do
+            use_frameworks!
+            use_modular_headers!
+            
+            flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
+          end
+          
+          post_install do |installer|
+            installer.pods_project.targets.each do |target|
+              flutter_additional_ios_build_settings(target)
+              target.build_configurations.each do |config|
+                config.build_settings['CODE_SIGNING_ALLOWED'] = 'NO'
+                config.build_settings['CODE_SIGNING_REQUIRED'] = 'NO'
+              end
+            end
+          end
+          EOF
+          
+          # Устанавливаем поды
+          cd ios
+          pod install
+          cd ..
+          
+          # Создаем недостающую папку
           mkdir -p ios/Flutter/ephemeral/Packages
           touch ios/Flutter/ephemeral/Packages/FlutterGeneratedPluginSwiftPackage.swift
-      
-      - name: Build .app (without signing)
-        run: |
+          
+          # Билдим
           flutter build ios --release --no-codesign
+          
+          # Создаем IPA
           mkdir -p Payload
           cp -r build/ios/iphoneos/Runner.app Payload/
           zip -r lumen.ipa Payload/
