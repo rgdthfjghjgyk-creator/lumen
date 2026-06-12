@@ -1,72 +1,62 @@
-name: lumen
-description: "Профессиональный будильник с расширенными функциями"
-publish_to: 'none'
+name: Build iOS App
 
-version: 1.0.0+1
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
 
-environment:
-  sdk: ">=3.3.0 <4.0.0"
-
-dependencies:
-  flutter:
-    sdk: flutter
-  
-  # UI
-  cupertino_icons: ^1.0.8
-  google_fonts: ^6.2.1
-  flutter_svg: ^2.0.9
-  shimmer: ^3.0.0
-  
-  # Уведомления
-  flutter_local_notifications: ^17.0.0
-  
-  # Аудио
-  audioplayers: ^6.0.0
-  just_audio: ^0.9.36
-  audio_service: ^0.18.13
-  
-  # Скачивание мелодий
-  dio: ^5.4.0
-  permission_handler: ^11.3.0
-  path_provider: ^2.1.2
-  file_picker: ^8.0.0
-  
-  # Хранение
-  shared_preferences: ^2.2.3
-  sqflite: ^2.3.3+1
-  path: ^1.9.0
-  
-  # Время
-  intl: ^0.19.0
-  
-  # UI компоненты
-  fl_chart: ^0.68.0
-  percent_indicator: ^4.2.3
-  sliding_up_panel: ^2.0.0+1
-  
-  # Анимации
-  lottie: ^3.1.0
-  animate_do: ^3.3.4
-  
-  # Аналитика сна
-  health: ^10.0.0
-  sensors_plus: ^5.0.1
-  
-  # Утилиты
-  connectivity_plus: ^6.0.3
-  url_launcher: ^6.2.5
-  share_plus: ^9.0.0
-
-dev_dependencies:
-  flutter_test:
-    sdk: flutter
-  flutter_lints: ^4.0.0  # Изменено с ^5.0.0 на ^4.0.0
-
-flutter:
-  uses-material-design: true
-  
-  assets:
-    - assets/sounds/
-    - assets/animations/
-    - assets/icons/
-    - assets/images/
+jobs:
+  build:
+    runs-on: macos-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.19.6'
+          channel: 'stable'
+      
+      - name: Install dependencies
+        run: flutter pub get
+      
+      # <--- НОВЫЙ ШАГ: ИСПРАВЛЯЕМ PODFILE
+      - name: Fix Podfile platform
+        run: |
+          cat > ios/Podfile << 'EOF'
+          platform :ios, '13.0'
+          
+          target 'Runner' do
+            use_frameworks!
+            use_modular_headers!
+            
+            flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
+          end
+          
+          post_install do |installer|
+            installer.pods_project.targets.each do |target|
+              flutter_additional_ios_build_settings(target)
+              target.build_configurations.each do |config|
+                config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '13.0'
+                config.build_settings['CODE_SIGNING_ALLOWED'] = 'NO'
+              end
+            end
+          end
+          EOF
+      # <--- КОНЕЦ НОВОГО ШАГА
+      
+      - name: Build IPA
+        run: |
+          flutter build ios --release --no-codesign
+          cd build/ios/iphoneos
+          mkdir -p Payload
+          cp -r Runner.app Payload/
+          zip -r ../../../lumen.ipa Payload/
+          cd ../../..
+      
+      - name: Upload IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: lumen.ipa
+          path: lumen.ipa
