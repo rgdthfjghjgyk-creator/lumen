@@ -18,25 +18,70 @@ jobs:
           flutter-version: '3.19.6'
           channel: 'stable'
       
-      - name: Build iOS app
+      - name: Clean and rebuild iOS project
         run: |
+          # Полная очистка
           flutter clean
+          rm -rf ios
+          rm -rf build
+          
+          # Получаем зависимости
           flutter pub get
+          
+          # Создаем новый iOS проект
+          flutter create --platforms=ios --org=com.lumen .
+          
+          # Удаляем проблемные файлы
+          rm -rf ios/Flutter/ephemeral/Packages
+          mkdir -p ios/Flutter/ephemeral/Packages
+          
+          # Создаем фиктивный Swift package
+          echo "// dummy file" > ios/Flutter/ephemeral/Packages/FlutterGeneratedPluginSwiftPackage.swift
+      
+      - name: Fix Podfile
+        run: |
+          cat > ios/Podfile << 'EOF'
+          platform :ios, '13.0'
+          
+          target 'Runner' do
+            use_frameworks!
+            use_modular_headers!
+            
+            flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
+          end
+          
+          post_install do |installer|
+            installer.pods_project.targets.each do |target|
+              flutter_additional_ios_build_settings(target)
+              target.build_configurations.each do |config|
+                config.build_settings['CODE_SIGNING_ALLOWED'] = 'NO'
+                config.build_settings['CODE_SIGNING_REQUIRED'] = 'NO'
+                config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '13.0'
+              end
+            end
+          end
+          EOF
+      
+      - name: Install pods
+        run: |
+          cd ios
+          pod deintegrate || true
+          pod install --repo-update
+          cd ..
+      
+      - name: Build iOS
+        run: |
           flutter build ios --release --no-codesign
           
-          # Создаем IPA из .app
+          # Создаем IPA
+          cd build/ios/iphoneos
           mkdir -p Payload
-          cp -r build/ios/iphoneos/Runner.app Payload/
-          zip -r lumen.ipa Payload/
-          
-          # Также сохраняем .app для отладки
-          zip -r Runner.app.zip build/ios/iphoneos/Runner.app
+          cp -r Runner.app Payload/
+          zip -r ../../../lumen.ipa Payload/
+          cd ../../..
       
       - name: Upload IPA
         uses: actions/upload-artifact@v4
         with:
-          name: lumen-ipa
-          path: |
-            lumen.ipa
-            Runner.app.zip
-          retention-days: 30
+          name: lumen.ipa
+          path: lumen.ipa
