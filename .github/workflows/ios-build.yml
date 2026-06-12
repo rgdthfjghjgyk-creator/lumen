@@ -1,4 +1,4 @@
-name: Build iOS App
+name: Build iOS IPA (Unsigned)
 
 on:
   push:
@@ -16,42 +16,39 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.19.6'
-          channel: 'stable'
       
-      - name: Build iOS
+      - name: Build unsigned IPA
         run: |
-          # Полная очистка
+          # Очистка
           flutter clean
           rm -rf ios
-          rm -rf build
           
-          # Получаем зависимости
+          # Подготовка
           flutter pub get
-          
-          # Создаем iOS проект
           flutter create --platforms=ios --org=com.lumen .
           
-          # НЕ создаем свой Podfile, используем тот, что создал Flutter
-          # Просто добавляем platform в начало существующего Podfile
-          sed -i '' '1s/^/platform :ios, '\''13.0'\''\n/' ios/Podfile
-          
-          # Устанавливаем поды
+          # Установка подов
           cd ios
           pod install --repo-update
           cd ..
           
-          # Билдим
+          # Сборка для устройства (без подписи)
           flutter build ios --release --no-codesign
           
-          # Создаем IPA
+          # Создание IPA
           cd build/ios/iphoneos
-          mkdir Payload
+          mkdir -p Payload
           cp -r Runner.app Payload/
-          zip -r ../../../lumen.ipa Payload/
+          zip -r ../../../lumen-unsigned.ipa Payload/
           cd ../../..
+          
+          # Также сохраняем .app для AltStore
+          zip -r lumen-app.zip build/ios/iphoneos/Runner.app
       
-      - name: Upload IPA
+      - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: lumen.ipa
-          path: lumen.ipa
+          name: lumen-unsigned
+          path: |
+            lumen-unsigned.ipa
+            lumen-app.zip
