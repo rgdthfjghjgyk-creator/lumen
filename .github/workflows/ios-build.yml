@@ -1,4 +1,4 @@
-name: Build iOS IPA
+name: Build iOS App
 
 on:
   push:
@@ -16,32 +16,19 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.19.6'
+          channel: 'stable'
       
-      - name: Build
+      - name: Install dependencies
+        run: flutter pub get
+      
+      - name: Build .app (without signing)
         run: |
-          # Полная очистка
-          flutter clean
-          rm -rf ios
-          
-          # Подготовка
-          flutter pub get
-          flutter create --platforms=ios --org=com.lumen .
-          
-          # ФИКС: создаем недостающую папку ДО билда
-          mkdir -p ios/Flutter/ephemeral/Packages
-          echo "// Fixed" > ios/Flutter/ephemeral/Packages/FlutterGeneratedPluginSwiftPackage.swift
-          
-          # Билд
           flutter build ios --release --no-codesign
-          
-          # Создание IPA
-          cd build/ios/iphoneos
-          mkdir Payload
-          cp -r Runner.app Payload/
-          zip -r ../../../lumen.ipa Payload/
-          cd ../../..
+          mkdir -p Payload
+          cp -r build/ios/iphoneos/Runner.app Payload/
+          zip -r lumen.ipa Payload/
       
-      - name: Upload
+      - name: Upload IPA
         uses: actions/upload-artifact@v4
         with:
           name: lumen.ipa

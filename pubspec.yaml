@@ -1,60 +1,16 @@
 name: lumen
-description: "Профессиональный будильник с расширенными функциями"
+description: "A new Flutter project."
 publish_to: 'none'
 
 version: 1.0.0+1
 
 environment:
-  sdk: ">=3.3.0 <4.0.0"  # Эта строка ОБЯЗАТЕЛЬНА!
+  sdk: ">=3.3.0 <4.0.0"
 
 dependencies:
   flutter:
     sdk: flutter
-  
-  # UI
   cupertino_icons: ^1.0.8
-  google_fonts: ^6.2.1
-  flutter_svg: ^2.0.9
-  shimmer: ^3.0.0
-  
-  # Уведомления
-  flutter_local_notifications: ^17.0.0
-  
-  # Аудио
-  audioplayers: ^6.0.0
-  just_audio: ^0.9.36
-  audio_service: ^0.18.13
-  
-  # Скачивание мелодий
-  dio: ^5.4.0
-  permission_handler: ^11.3.0
-  path_provider: ^2.1.2
-  file_picker: ^8.0.0
-  
-  # Хранение
-  shared_preferences: ^2.2.3
-  sqflite: ^2.3.3+1
-  path: ^1.9.0
-  
-  # Время
-  intl: ^0.19.0
-  
-  # UI компоненты
-  fl_chart: ^0.68.0
-  percent_indicator: ^4.2.3
-  sliding_up_panel: ^2.0.0+1
-  
-  # Анимации
-  lottie: ^3.1.0
-  animate_do: ^3.3.4
-  
-  # Аналитика сна
-  sensors_plus: ^5.0.1
-  
-  # Утилиты
-  connectivity_plus: ^6.0.3
-  url_launcher: ^6.2.5
-  share_plus: ^9.0.0
 
 dev_dependencies:
   flutter_test:
@@ -63,9 +19,3 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
-  
-  assets:
-    - assets/sounds/
-    - assets/animations/
-    - assets/icons/
-    - assets/images/
