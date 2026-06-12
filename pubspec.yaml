@@ -5,7 +5,7 @@ publish_to: 'none'
 version: 1.0.0+1
 
 environment:
-  sdk: ">=3.3.0 <4.0.0"  # Изменил с 3.4.0 на 3.3.0
+  sdk: ">=3.3.0 <4.0.0"
 
 dependencies:
   flutter:
@@ -35,8 +35,9 @@ dependencies:
   timezone: ^0.9.2
   flutter_timezone: ^1.0.9
   
-  # UI компоненты
-  time_picker_sheet: ^1.0.4
+  # UI компоненты (ЗАМЕНА time_picker_sheet)
+  flutter_time_picker_spinner: ^2.0.0  # Альтернатива
+  table_calendar: ^3.1.1
   fl_chart: ^0.68.0
   percent_indicator: ^4.2.3
   
